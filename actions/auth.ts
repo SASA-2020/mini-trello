@@ -66,3 +66,10 @@ export async function loginUser(formData: FormData) {
 
   redirect("/dashboard");
 }
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete("user_session");
+
+  redirect("/login");
+}
