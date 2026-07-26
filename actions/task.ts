@@ -106,6 +106,7 @@ export async function updateTaskDetails(formData: FormData) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const priority = formData.get("priority") as "Low" | "Medium" | "High";
+  const assigneeId = formData.get("assigneeId") as string;
 
   if (!taskId || !projectId || !title) {
     throw new Error("عنوان تسک الزامی است");
@@ -117,6 +118,7 @@ export async function updateTaskDetails(formData: FormData) {
       title,
       description,
       priority,
+      assignee_id: assigneeId === "unassigned" ? null : assigneeId,
     },
   });
 

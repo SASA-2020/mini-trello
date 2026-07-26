@@ -10,17 +10,28 @@ type Task = {
   description: string | null;
   status: "ToDo" | "InProgress" | "Done";
   priority: string;
+  assignee_id: string | null;
+  assignee: { name: string } | null;
 };
+
+type Member = { id: string; name: string };
 
 export default function KanbanBoard({
   initialTasks,
   projectId,
+  members,
 }: {
   initialTasks: Task[];
   projectId: string;
+  members: Member[];
 }) {
+  const [prevInitialTasks, setPrevInitialTasks] = useState(initialTasks);
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
+  if (initialTasks !== prevInitialTasks) {
+    setPrevInitialTasks(initialTasks);
+    setTasks(initialTasks);
+  }
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData("taskId", taskId);
   };
@@ -34,14 +45,12 @@ export default function KanbanBoard({
     newStatus: "ToDo" | "InProgress" | "Done",
   ) => {
     const taskId = e.dataTransfer.getData("taskId");
-
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
     setTasks(
       tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
     );
-
     await updateTaskStatus(taskId, newStatus, projectId);
   };
 
@@ -72,7 +81,7 @@ export default function KanbanBoard({
               key={task.id}
               draggable
               onDragStart={(e) => handleDragStart(e, task.id)}
-              className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-300 transition-all cursor-grab active:cursor-grabbing group"
+              className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-300 transition-all cursor-grab active:cursor-grabbing group flex flex-col"
             >
               <div className="flex justify-between items-start mb-2">
                 <h3
@@ -87,6 +96,8 @@ export default function KanbanBoard({
                     taskTitle={task.title}
                     taskDescription={task.description}
                     taskPriority={task.priority}
+                    assigneeId={task.assignee_id}
+                    members={members}
                   />
                 </div>
               </div>
@@ -99,7 +110,7 @@ export default function KanbanBoard({
                 </p>
               )}
 
-              <div className="mt-3 flex justify-between items-center">
+              <div className="mt-4 flex justify-between items-center">
                 <span
                   className={`text-xs px-2 py-1 rounded-md font-medium ${
                     task.priority === "High"
@@ -115,6 +126,17 @@ export default function KanbanBoard({
                       ? "متوسط"
                       : "پایین"}
                 </span>
+
+                {task.assignee ? (
+                  <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full border border-purple-100 text-xs font-semibold">
+                    <span>👤</span>
+                    <span>{task.assignee.name}</span>
+                  </div>
+                ) : (
+                  <span className="text-xs bg-gray-50 text-gray-400 px-2 py-1 rounded-full border border-gray-100">
+                    بدون مسئول
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -131,24 +153,14 @@ export default function KanbanBoard({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {renderColumn("برای انجام", "ToDo", "bg-gray-50", "border-gray-200")}
       {renderColumn(
-        "برای انجام (To Do)",
-        "ToDo",
-        "bg-gray-50",
-        "border-gray-200",
-      )}
-      {renderColumn(
-        "در حال انجام (In Progress)",
+        "در حال انجام",
         "InProgress",
         "bg-blue-50/50",
         "border-blue-100",
       )}
-      {renderColumn(
-        "انجام شده (Done)",
-        "Done",
-        "bg-green-50/50",
-        "border-green-100",
-      )}
+      {renderColumn("تکمیل شده", "Done", "bg-green-50/50", "border-green-100")}
     </div>
   );
 }

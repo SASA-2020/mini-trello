@@ -129,11 +129,17 @@ export async function removeMember(userId: string, projectId: string) {
     return { error: "فقط سازنده پروژه می‌تواند ادمین‌های دیگر را حذف کند" };
   }
 
-  await db.projectMember.delete({
-    where: {
-      user_id_project_id: { user_id: userId, project_id: projectId },
-    },
-  });
+  await db.$transaction([
+    db.task.updateMany({
+      where: { project_id: projectId, assignee_id: userId },
+      data: { assignee_id: null },
+    }),
+    db.projectMember.delete({
+      where: {
+        user_id_project_id: { user_id: userId, project_id: projectId },
+      },
+    }),
+  ]);
 
   revalidatePath(`/dashboard/projects/${projectId}/members`);
   return { success: true };

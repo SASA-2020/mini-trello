@@ -15,29 +15,23 @@ export default async function ProjectBoardPage({
   const cookieStore = await cookies();
   const userId = cookieStore.get("user_session")?.value;
 
-  if (!userId) {
-    redirect("/login");
-  }
+  if (!userId) redirect("/login");
 
   const membership = await db.projectMember.findUnique({
     where: {
-      user_id_project_id: {
-        user_id: userId,
-        project_id: projectId,
-      },
+      user_id_project_id: { user_id: userId, project_id: projectId },
     },
     include: {
       project: {
         include: {
-          tasks: true,
+          tasks: { include: { assignee: { select: { name: true } } } },
+          members: { include: { user: { select: { id: true, name: true } } } },
         },
       },
     },
   });
 
-  if (!membership) {
-    redirect("/dashboard");
-  }
+  if (!membership) redirect("/dashboard");
 
   const project = membership.project;
 
@@ -47,6 +41,13 @@ export default async function ProjectBoardPage({
     description: task.description,
     status: task.status as "ToDo" | "InProgress" | "Done",
     priority: task.priority,
+    assignee_id: task.assignee_id,
+    assignee: task.assignee,
+  }));
+
+  const projectMembers = project.members.map((m) => ({
+    id: m.user.id,
+    name: m.user.name,
   }));
 
   return (
@@ -68,6 +69,7 @@ export default async function ProjectBoardPage({
             >
               بازگشت
             </Link>
+
             {membership.role === "Admin" && (
               <Link
                 href={`/dashboard/projects/${projectId}/settings`}
@@ -76,6 +78,7 @@ export default async function ProjectBoardPage({
                 تنظیمات ⚙️
               </Link>
             )}
+
             <Link
               href={`/dashboard/projects/${projectId}/members`}
               className="px-4 py-2 text-blue-600 bg-blue-50 rounded-md font-medium hover:bg-blue-100 transition-colors border border-blue-100"
@@ -92,7 +95,11 @@ export default async function ProjectBoardPage({
           </div>
         </div>
 
-        <KanbanBoard initialTasks={formattedTasks} projectId={projectId} />
+        <KanbanBoard
+          initialTasks={formattedTasks}
+          projectId={projectId}
+          members={projectMembers}
+        />
       </div>
     </div>
   );

@@ -13,18 +13,24 @@ type ActivityLog = {
   user: { name: string };
 };
 
+type Member = { id: string; name: string };
+
 export default function TaskMenu({
   projectId,
   taskId,
   taskTitle,
   taskDescription,
   taskPriority,
+  assigneeId,
+  members,
 }: {
   projectId: string;
   taskId: string;
   taskTitle: string;
   taskDescription: string | null;
   taskPriority: string;
+  assigneeId: string | null;
+  members: Member[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -66,7 +72,6 @@ export default function TaskMenu({
       const formData = new FormData();
       formData.append("taskId", taskId);
       formData.append("projectId", projectId);
-
       await deleteTask(formData);
     }
   };
@@ -80,12 +85,11 @@ export default function TaskMenu({
     setIsOpen(false);
     setIsLogModalOpen(true);
     setIsLoadingLogs(true);
-
     try {
       const fetchedLogs = await getTaskLogs(taskId);
       setLogs(fetchedLogs);
     } catch (error) {
-      console.error("خطا در دریافت تاریخچه:", error);
+      console.error(error);
     } finally {
       setIsLoadingLogs(false);
     }
@@ -104,7 +108,6 @@ export default function TaskMenu({
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="text-gray-500 hover:bg-gray-200 p-1 rounded-md transition-colors cursor-pointer"
-          title="عملیات"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +134,6 @@ export default function TaskMenu({
             >
               مشاهده و نظرات
             </Link>
-
             <button
               onClick={() => {
                 setIsOpen(false);
@@ -141,14 +143,12 @@ export default function TaskMenu({
             >
               ویرایش تسک
             </button>
-
             <button
               onClick={handleViewLogs}
               className="block w-full text-right px-4 py-2 text-gray-700 hover:bg-blue-50 transition-colors cursor-pointer"
             >
               تاریخچه فعالیت‌ها
             </button>
-
             <button
               onClick={handleDeleteClick}
               className="block w-full text-right px-4 py-2 text-red-600 hover:bg-red-50 transition-colors cursor-pointer border-t border-gray-100 mt-1"
@@ -160,7 +160,7 @@ export default function TaskMenu({
       </div>
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 text-right">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800">ویرایش تسک</h2>
@@ -201,20 +201,40 @@ export default function TaskMenu({
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  اولویت *
-                </label>
-                <select
-                  name="priority"
-                  required
-                  defaultValue={taskPriority}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white"
-                >
-                  <option value="Low">پایین (Low)</option>
-                  <option value="Medium">متوسط (Medium)</option>
-                  <option value="High">بالا (High)</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    اولویت *
+                  </label>
+                  <select
+                    name="priority"
+                    required
+                    defaultValue={taskPriority}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white"
+                  >
+                    <option value="Low">پایین (Low)</option>
+                    <option value="Medium">متوسط (Medium)</option>
+                    <option value="High">بالا (High)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    مسئول تسک
+                  </label>
+                  <select
+                    name="assigneeId"
+                    defaultValue={assigneeId || "unassigned"}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white"
+                  >
+                    <option value="unassigned">بدون مسئول</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -251,15 +271,14 @@ export default function TaskMenu({
                 ✕
               </button>
             </div>
-
-            <div className="p-6 overflow-y-auto flex-1">
+            <div className="p-6 overflow-y-auto flex-1 text-right">
               {isLoadingLogs ? (
                 <div className="text-center text-gray-500 py-8">
                   در حال بارگذاری اطلاعات...
                 </div>
               ) : logs.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
-                  هیچ تغییری برای این تسک ثبت نشده است.
+                  هیچ تغییری برای این تسک ثبت نشده است
                 </div>
               ) : (
                 <div className="space-y-6">
