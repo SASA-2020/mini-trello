@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createProject } from "../../../actions/project";
+import { createProject } from "@/actions/project";
 import Link from "next/link";
 
 export default function NewProjectPage() {
