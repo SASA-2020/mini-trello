@@ -26,21 +26,21 @@ export async function createTask(formData: FormData) {
   redirect(`/dashboard/projects/${projectId}`);
 }
 
-export async function updateTaskStatus(formData: FormData) {
-  const taskId = formData.get("taskId") as string;
-  const status = formData.get("status") as "ToDo" | "InProgress" | "Done";
-  const projectId = formData.get("projectId") as string;
-
-  if (!taskId || !status || !projectId) {
+export async function updateTaskStatus(
+  taskId: string,
+  newStatus: "ToDo" | "InProgress" | "Done",
+  projectId: string,
+) {
+  if (!taskId || !newStatus || !projectId) {
     throw new Error("اطلاعات ناقص است");
   }
 
   await db.task.update({
     where: { id: taskId },
-    data: { status },
+    data: { status: newStatus },
   });
 
-  redirect(`/dashboard/projects/${projectId}`);
+  revalidatePath(`/dashboard/projects/${projectId}`);
 }
 
 export async function deleteTask(formData: FormData) {
