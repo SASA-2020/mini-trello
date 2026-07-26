@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import AddMemberForm from "@/components/AddMemberForm";
+import MemberMenu from "@/components/MemberMenu";
 import { redirect } from "next/navigation";
 
 export default async function MembersPage({
@@ -11,6 +13,11 @@ export default async function MembersPage({
   const resolvedParams = await params;
   const projectId = resolvedParams.id;
 
+  const cookieStore = await cookies();
+  const currentUserId = cookieStore.get("user_session")?.value;
+
+  if (!currentUserId) redirect("/login");
+
   const members = await db.projectMember.findMany({
     where: { project_id: projectId },
     include: {
@@ -19,25 +26,36 @@ export default async function MembersPage({
     orderBy: { joined_at: "asc" },
   });
 
-  if (!members) {
+  if (!members || members.length === 0) {
     redirect("/dashboard");
   }
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "Admin":
-        return (
-          <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">
-            ادمین
-          </span>
-        );
-      default:
-        return (
-          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">
-            عادی
-          </span>
-        );
+  const creatorId = members[0].user_id;
+  const currentUserMembership = members.find(
+    (m) => m.user_id === currentUserId,
+  );
+  const currentUserRole = currentUserMembership?.role || "Member";
+
+  const getRoleBadge = (role: string, isCreator: boolean) => {
+    if (isCreator) {
+      return (
+        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
+          سازنده
+        </span>
+      );
     }
+    if (role === "Admin") {
+      return (
+        <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">
+          ادمین
+        </span>
+      );
+    }
+    return (
+      <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">
+        عادی
+      </span>
+    );
   };
 
   return (
@@ -53,7 +71,7 @@ export default async function MembersPage({
           </Link>
         </div>
 
-        <AddMemberForm projectId={projectId} />
+        {currentUserRole === "Admin" && <AddMemberForm projectId={projectId} />}
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -64,26 +82,54 @@ export default async function MembersPage({
           </h2>
 
           <div className="space-y-3">
-            {members.map((member) => (
-              <div
-                key={member.user_id}
-                className="flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-lg"
-              >
-                <div>
-                  <div className="font-semibold text-gray-800 flex items-center gap-2">
-                    {member.user?.name || "کاربر بدون نام"}
-                    {getRoleBadge(member.role)}
-                  </div>
-                  <div className="text-sm text-gray-500 font-mono mt-1">
-                    {member.user?.email}
-                  </div>
-                </div>
+            {members.map((member) => {
+              const isCreator = member.user_id === creatorId;
+              const isSelf = member.user_id === currentUserId;
 
-                <button className="text-gray-400 hover:text-gray-600 transition-colors text-sm font-medium p-2">
-                  تنظیمات ⚙️
-                </button>
-              </div>
-            ))}
+              let canManage = false;
+              if (!isSelf && currentUserRole === "Admin") {
+                if (currentUserId === creatorId) {
+                  canManage = true;
+                } else if (!isCreator && member.role !== "Admin") {
+                  canManage = true;
+                }
+              }
+
+              return (
+                <div
+                  key={member.user_id}
+                  className="flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-lg"
+                >
+                  <div>
+                    <div className="font-semibold text-gray-800 flex items-center gap-2">
+                      {member.user?.name || "کاربر بدون نام"}
+                      {getRoleBadge(member.role, isCreator)}
+                    </div>
+                    <div className="text-sm text-gray-500 font-mono mt-1">
+                      {member.user?.email}
+                    </div>
+                  </div>
+
+                  {canManage ? (
+                    <MemberMenu
+                      projectId={projectId}
+                      userId={member.user_id}
+                      userName={member.user?.name || null}
+                      currentRole={member.role as "Admin" | "Member"}
+                    />
+                  ) : (
+                    <div
+                      className="text-gray-400 text-sm font-medium p-2 cursor-not-allowed opacity-50"
+                      title={
+                        isSelf ? "شما" : "شما دسترسی ویرایش این کاربر را ندارید"
+                      }
+                    >
+                      غیرقابل تغییر
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
