@@ -34,3 +34,35 @@ export async function registerUser(formData: FormData) {
 
   redirect("/login");
 }
+
+export async function loginUser(formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    return { error: "لطفاً ایمیل و رمز عبور را وارد کنید." };
+  }
+
+  const user = await db.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return { error: "کاربری با این ایمیل یافت نشد." };
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+  if (!isPasswordValid) {
+    return { error: "رمز عبور اشتباه است." };
+  }
+
+  (await cookies()).set("user_session", user.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+
+  redirect("/dashboard");
+}
