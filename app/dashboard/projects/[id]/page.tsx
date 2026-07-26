@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-
+import { updateTaskStatus } from "@/actions/task";
 export default async function ProjectBoardPage({
   params,
 }: {
@@ -85,9 +85,20 @@ export default async function ProjectBoardPage({
               {todoTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3"
                 >
                   <h3 className="font-medium text-gray-800">{task.title}</h3>
+                  <form action={updateTaskStatus} className="flex justify-end">
+                    <input type="hidden" name="taskId" value={task.id} />
+                    <input type="hidden" name="projectId" value={projectId} />
+                    <input type="hidden" name="status" value="InProgress" />
+                    <button
+                      type="submit"
+                      className="text-xs px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
+                    >
+                      شروع انجام ➔
+                    </button>
+                  </form>
                 </div>
               ))}
               {todoTasks.length === 0 && (
@@ -109,9 +120,33 @@ export default async function ProjectBoardPage({
               {inProgressTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white p-4 rounded-lg shadow-sm border border-blue-200"
+                  className="bg-white p-4 rounded-lg shadow-sm border border-blue-200 flex flex-col gap-3"
                 >
                   <h3 className="font-medium text-gray-800">{task.title}</h3>
+                  <form
+                    action={updateTaskStatus}
+                    className="flex justify-between"
+                  >
+                    <input type="hidden" name="taskId" value={task.id} />
+                    <input type="hidden" name="projectId" value={projectId} />
+
+                    <button
+                      type="submit"
+                      name="status"
+                      value="ToDo"
+                      className="text-xs px-3 py-1.5 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+                    >
+                      بازگشت به برای انجام
+                    </button>
+                    <button
+                      type="submit"
+                      name="status"
+                      value="Done"
+                      className="text-xs px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-md transition-colors cursor-pointer"
+                    >
+                      تکمیل ✔
+                    </button>
+                  </form>
                 </div>
               ))}
               {inProgressTasks.length === 0 && (
@@ -133,9 +168,25 @@ export default async function ProjectBoardPage({
               {doneTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white p-4 rounded-lg shadow-sm border border-green-200"
+                  className="bg-white p-4 rounded-lg shadow-sm border border-green-200 flex flex-col gap-3"
                 >
-                  <h3 className="font-medium text-gray-800">{task.title}</h3>
+                  <h3 className="font-medium text-gray-800 line-through opacity-70">
+                    {task.title}
+                  </h3>
+                  <form
+                    action={updateTaskStatus}
+                    className="flex justify-start"
+                  >
+                    <input type="hidden" name="taskId" value={task.id} />
+                    <input type="hidden" name="projectId" value={projectId} />
+                    <input type="hidden" name="status" value="InProgress" />
+                    <button
+                      type="submit"
+                      className="text-xs px-3 py-1.5 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+                    >
+                      برگشت به در حال انجام
+                    </button>
+                  </form>
                 </div>
               ))}
               {doneTasks.length === 0 && (

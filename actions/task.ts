@@ -24,3 +24,20 @@ export async function createTask(formData: FormData) {
 
   redirect(`/dashboard/projects/${projectId}`);
 }
+
+export async function updateTaskStatus(formData: FormData) {
+  const taskId = formData.get("taskId") as string;
+  const status = formData.get("status") as "ToDo" | "InProgress" | "Done";
+  const projectId = formData.get("projectId") as string;
+
+  if (!taskId || !status || !projectId) {
+    throw new Error("اطلاعات ناقص است");
+  }
+
+  await db.task.update({
+    where: { id: taskId },
+    data: { status },
+  });
+
+  redirect(`/dashboard/projects/${projectId}`);
+}
