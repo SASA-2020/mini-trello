@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { updateTaskStatus } from "@/actions/task";
+import TaskMenu from "@/components/TaskMenu";
 export default async function ProjectBoardPage({
   params,
 }: {
@@ -87,7 +88,12 @@ export default async function ProjectBoardPage({
                   key={task.id}
                   className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3"
                 >
-                  <h3 className="font-medium text-gray-800">{task.title}</h3>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-gray-800 leading-tight">
+                      {task.title}
+                    </h3>
+                    <TaskMenu projectId={projectId} taskId={task.id} />
+                  </div>
                   <form action={updateTaskStatus} className="flex justify-end">
                     <input type="hidden" name="taskId" value={task.id} />
                     <input type="hidden" name="projectId" value={projectId} />
@@ -122,7 +128,12 @@ export default async function ProjectBoardPage({
                   key={task.id}
                   className="bg-white p-4 rounded-lg shadow-sm border border-blue-200 flex flex-col gap-3"
                 >
-                  <h3 className="font-medium text-gray-800">{task.title}</h3>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-gray-800 leading-tight">
+                      {task.title}
+                    </h3>
+                    <TaskMenu projectId={projectId} taskId={task.id} />
+                  </div>
                   <form
                     action={updateTaskStatus}
                     className="flex justify-between"
@@ -170,9 +181,12 @@ export default async function ProjectBoardPage({
                   key={task.id}
                   className="bg-white p-4 rounded-lg shadow-sm border border-green-200 flex flex-col gap-3"
                 >
-                  <h3 className="font-medium text-gray-800 line-through opacity-70">
-                    {task.title}
-                  </h3>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-gray-800 leading-tight line-through opacity-70">
+                      {task.title}
+                    </h3>
+                    <TaskMenu projectId={projectId} taskId={task.id} />
+                  </div>
                   <form
                     action={updateTaskStatus}
                     className="flex justify-start"
