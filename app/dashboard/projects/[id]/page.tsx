@@ -68,7 +68,14 @@ export default async function ProjectBoardPage({
             >
               بازگشت
             </Link>
-
+            {membership.role === "Admin" && (
+              <Link
+                href={`/dashboard/projects/${projectId}/settings`}
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md font-medium hover:bg-gray-200 transition-colors"
+              >
+                تنظیمات ⚙️
+              </Link>
+            )}
             <Link
               href={`/dashboard/projects/${projectId}/members`}
               className="px-4 py-2 text-blue-600 bg-blue-50 rounded-md font-medium hover:bg-blue-100 transition-colors border border-blue-100"
