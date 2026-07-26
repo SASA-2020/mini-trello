@@ -16,7 +16,7 @@ export async function createProject(formData: FormData) {
   const userId = cookieStore.get("user_session")?.value;
 
   if (!userId) {
-    return { error: "خطای دسترسی: لطفاً ابتدا وارد حساب کاربری شوید" };
+    return { error: "خطای دسترسی: لطفا ابتدا وارد حساب کاربری شوید" };
   }
 
   const project = await db.project.create({
