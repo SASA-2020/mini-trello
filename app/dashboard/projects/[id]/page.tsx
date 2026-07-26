@@ -99,6 +99,7 @@ export default async function ProjectBoardPage({
           initialTasks={formattedTasks}
           projectId={projectId}
           members={projectMembers}
+          currentUserId={userId}
         />
       </div>
     </div>
