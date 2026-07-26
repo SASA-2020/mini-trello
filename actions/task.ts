@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function createTask(formData: FormData) {
   const title = formData.get("title") as string;
@@ -40,4 +41,19 @@ export async function updateTaskStatus(formData: FormData) {
   });
 
   redirect(`/dashboard/projects/${projectId}`);
+}
+
+export async function deleteTask(formData: FormData) {
+  const taskId = formData.get("taskId") as string;
+  const projectId = formData.get("projectId") as string;
+
+  if (!taskId || !projectId) {
+    throw new Error("شناسه تسک یا پروژه نامعتبر است.");
+  }
+
+  await db.task.delete({
+    where: { id: taskId },
+  });
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
 }

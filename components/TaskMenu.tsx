@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { deleteTask } from "@/actions/task";
+import Swal from "sweetalert2";
 
 export default function TaskMenu({
   projectId,
@@ -22,6 +24,32 @@ export default function TaskMenu({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleDeleteClick = async () => {
+    setIsOpen(false);
+
+    const result = await Swal.fire({
+      title: "حذف تسک",
+      text: "آیا از حذف این تسک اطمینان دارید؟ این عمل غیرقابل بازگشت است.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#9ca3af",
+      confirmButtonText: "بله، حذف کن",
+      cancelButtonText: "انصراف",
+      customClass: {
+        popup: "rounded-xl shadow-lg border border-gray-100 font-sans",
+      },
+    });
+
+    if (result.isConfirmed) {
+      const formData = new FormData();
+      formData.append("taskId", taskId);
+      formData.append("projectId", projectId);
+
+      await deleteTask(formData);
+    }
+  };
 
   return (
     <div className="relative" ref={menuRef}>
@@ -61,11 +89,12 @@ export default function TaskMenu({
           >
             ویرایش (بزودی)
           </button>
+
           <button
-            className="block w-full text-right px-4 py-2 text-gray-400 cursor-not-allowed hover:bg-gray-50 transition-colors"
-            disabled
+            onClick={handleDeleteClick}
+            className="block w-full text-right px-4 py-2 text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
           >
-            حذف (بزودی)
+            حذف تسک
           </button>
         </div>
       )}
