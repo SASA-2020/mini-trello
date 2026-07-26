@@ -57,3 +57,26 @@ export async function deleteTask(formData: FormData) {
 
   revalidatePath(`/dashboard/projects/${projectId}`);
 }
+
+export async function updateTaskDetails(formData: FormData) {
+  const taskId = formData.get("taskId") as string;
+  const projectId = formData.get("projectId") as string;
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+  const priority = formData.get("priority") as "Low" | "Medium" | "High";
+
+  if (!taskId || !projectId || !title) {
+    throw new Error("عنوان تسک الزامی است");
+  }
+
+  await db.task.update({
+    where: { id: taskId },
+    data: {
+      title,
+      description,
+      priority,
+    },
+  });
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+}

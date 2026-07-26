@@ -92,7 +92,13 @@ export default async function ProjectBoardPage({
                     <h3 className="font-medium text-gray-800 leading-tight">
                       {task.title}
                     </h3>
-                    <TaskMenu projectId={projectId} taskId={task.id} />
+                    <TaskMenu
+                      projectId={projectId}
+                      taskId={task.id}
+                      taskTitle={task.title}
+                      taskDescription={task.description}
+                      taskPriority={task.priority}
+                    />{" "}
                   </div>
                   <form action={updateTaskStatus} className="flex justify-end">
                     <input type="hidden" name="taskId" value={task.id} />
@@ -132,7 +138,13 @@ export default async function ProjectBoardPage({
                     <h3 className="font-medium text-gray-800 leading-tight">
                       {task.title}
                     </h3>
-                    <TaskMenu projectId={projectId} taskId={task.id} />
+                    <TaskMenu
+                      projectId={projectId}
+                      taskId={task.id}
+                      taskTitle={task.title}
+                      taskDescription={task.description}
+                      taskPriority={task.priority}
+                    />{" "}
                   </div>
                   <form
                     action={updateTaskStatus}
@@ -185,7 +197,13 @@ export default async function ProjectBoardPage({
                     <h3 className="font-medium text-gray-800 leading-tight line-through opacity-70">
                       {task.title}
                     </h3>
-                    <TaskMenu projectId={projectId} taskId={task.id} />
+                    <TaskMenu
+                      projectId={projectId}
+                      taskId={task.id}
+                      taskTitle={task.title}
+                      taskDescription={task.description}
+                      taskPriority={task.priority}
+                    />{" "}
                   </div>
                   <form
                     action={updateTaskStatus}
