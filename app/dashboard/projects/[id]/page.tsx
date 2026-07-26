@@ -58,13 +58,21 @@ export default async function ProjectBoardPage({
               <p className="text-gray-500 mt-1">{project.description}</p>
             )}
           </div>
-          <div className="space-x-4 space-x-reverse flex items-center">
+          <div className="space-x-4  flex items-center">
             <Link
               href="/dashboard"
               className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md font-medium hover:bg-gray-200 transition-colors"
             >
               بازگشت
             </Link>
+
+            <Link
+              href={`/dashboard/projects/${projectId}/members`}
+              className="px-4 py-2 text-blue-600 bg-blue-50 rounded-md font-medium hover:bg-blue-100 transition-colors border border-blue-100"
+            >
+              مدیریت اعضا
+            </Link>
+
             <Link
               href={`/dashboard/projects/${projectId}/new-task`}
               className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
