@@ -18,8 +18,6 @@ export default async function DashboardPage() {
     },
   });
 
-  const projects = userMemberships.map((m) => m.project);
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -33,7 +31,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {projects.length === 0 ? (
+        {userMemberships.length === 0 ? (
           <div className="bg-white p-12 text-center rounded-xl shadow-sm border border-gray-100">
             <p className="text-gray-500 mb-4">شما هنوز هیچ پروژه‌ای ندارید</p>
             <Link
@@ -45,18 +43,31 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {userMemberships.map((membership) => (
               <Link
-                key={project.id}
-                href={`/dashboard/projects/${project.id}`}
-                className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all"
+                key={membership.project.id}
+                href={`/dashboard/projects/${membership.project.id}`}
+                className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all relative"
               >
-                <h3 className="text-xl font-semibold text-gray-800 mb-2 truncate">
-                  {project.title}
-                </h3>
-                {project.description && (
-                  <p className="text-gray-600 text-sm line-clamp-2">
-                    {project.description}
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-semibold text-gray-800 truncate">
+                    {membership.project.title}
+                  </h3>
+
+                  <span
+                    className={`text-xs px-2 py-1 rounded-md font-medium ${
+                      membership.role === "Admin"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {membership.role === "Admin" ? "ادمین" : "عادی"}
+                  </span>
+                </div>
+
+                {membership.project.description && (
+                  <p className="text-gray-600 text-sm line-clamp-2 mt-2">
+                    {membership.project.description}
                   </p>
                 )}
               </Link>

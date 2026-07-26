@@ -25,12 +25,6 @@ export default async function MembersPage({
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case "Owner":
-        return (
-          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
-            مالک
-          </span>
-        );
       case "Admin":
         return (
           <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">

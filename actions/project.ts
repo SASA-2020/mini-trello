@@ -19,7 +19,7 @@ export async function createProject(formData: FormData) {
     return { error: "خطای دسترسی: لطفاً ابتدا وارد حساب کاربری شوید" };
   }
 
-  await db.project.create({
+  const project = await db.project.create({
     data: {
       title,
       description,
@@ -32,5 +32,5 @@ export async function createProject(formData: FormData) {
     },
   });
 
-  redirect("/dashboard");
+  redirect(`/dashboard/projects/${project.id}`);
 }
