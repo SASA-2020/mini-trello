@@ -1,6 +1,6 @@
+import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "../../lib/db";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -11,70 +11,184 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const userMemberships = await db.projectMember.findMany({
-    where: { user_id: userId },
+  const projects = await db.project.findMany({
+    where: {
+      members: {
+        some: {
+          user_id: userId,
+        },
+      },
+    },
     include: {
-      project: true,
+      tasks: true,
+      members: {
+        include: {
+          user: true,
+        },
+      },
+    },
+    orderBy: {
+      created_at: "desc",
     },
   });
 
+  let totalTasks = 0;
+  let completedTasks = 0;
+  let overdueTasks = 0;
+  const now = new Date();
+
+  projects.forEach((project) => {
+    totalTasks += project.tasks.length;
+    project.tasks.forEach((task) => {
+      if (task.status === "Done") {
+        completedTasks++;
+      }
+
+      if (task.status !== "Done" && task.deadline) {
+        const taskDeadline = new Date(task.deadline);
+        if (taskDeadline < now) {
+          overdueTasks++;
+        }
+      }
+    });
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-800">داشبورد پروژه‌ها</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+              داشبورد فضای کاری
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              نمای کلی پروژه‌ها و وضعیت کارها
+            </p>
+          </div>
           <Link
             href="/dashboard/new-project"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
           >
-            + پروژه جدید
+            <span>+</span>
+            <span>پروژه جدید</span>
           </Link>
         </div>
 
-        {userMemberships.length === 0 ? (
-          <div className="bg-white p-12 text-center rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-500 mb-4">شما هنوز هیچ پروژه‌ای ندارید</p>
-            <Link
-              href="/dashboard/new-project"
-              className="text-blue-600 hover:underline font-medium"
-            >
-              اولین پروژه خود را بسازید
-            </Link>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl shadow-sm">
+              📋
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">
+                کل تسک‌های پروژه‌ها
+              </p>
+              <p className="text-3xl font-bold text-gray-800">{totalTasks}</p>
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userMemberships.map((membership) => (
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-14 h-14 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-2xl shadow-sm">
+              ✅
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">
+                تسک‌های انجام‌شده
+              </p>
+              <p className="text-3xl font-bold text-gray-800">
+                {completedTasks}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-2xl shadow-sm">
+              ⏰
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">
+                تسک‌های تاخیرخورده
+              </p>
+              <p className="text-3xl font-bold text-gray-800">{overdueTasks}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-700 px-1">
+            پروژه‌های اخیر شما
+          </h2>
+
+          {projects.length === 0 ? (
+            <div className="bg-white p-12 rounded-xl border border-dashed border-gray-300 text-center flex flex-col items-center justify-center">
+              <span className="text-4xl mb-4 opacity-50">📂</span>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                هنوز پروژه‌ای ندارید!
+              </h3>
+              <p className="text-gray-500 text-sm mb-6 max-w-md">
+                برای شروع مدیریت کارها، اولین پروژه خود را ایجاد کنید و اعضای
+                تیمتان را به آن دعوت کنید.
+              </p>
               <Link
-                key={membership.project.id}
-                href={`/dashboard/projects/${membership.project.id}`}
-                className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all relative"
+                href="/dashboard/new-project"
+                className="bg-blue-50 text-blue-700 border border-blue-200 px-6 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors"
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-semibold text-gray-800 truncate">
-                    {membership.project.title}
-                  </h3>
-
-                  <span
-                    className={`text-xs px-2 py-1 rounded-md font-medium ${
-                      membership.role === "Admin"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {membership.role === "Admin" ? "ادمین" : "عادی"}
-                  </span>
-                </div>
-
-                {membership.project.description && (
-                  <p className="text-gray-600 text-sm line-clamp-2 mt-2">
-                    {membership.project.description}
-                  </p>
-                )}
+                ایجاد اولین پروژه
               </Link>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => {
+                const projectProgress =
+                  project.tasks.length > 0
+                    ? Math.round(
+                        (project.tasks.filter((t) => t.status === "Done")
+                          .length /
+                          project.tasks.length) *
+                          100,
+                      )
+                    : 0;
+
+                return (
+                  <Link
+                    key={project.id}
+                    href={`/dashboard/projects/${project.id}`}
+                    className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group flex flex-col h-full"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {project.title}
+                      </h3>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
+                        {project.members.length} عضو
+                      </span>
+                    </div>
+
+                    <p className="text-gray-500 text-sm mb-6 line-clamp-2 flex-1">
+                      {project.description || "بدون توضیحات"}
+                    </p>
+
+                    <div className="mt-auto">
+                      <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                        <span>پیشرفت پروژه</span>
+                        <span className="font-medium text-gray-700">
+                          {projectProgress}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${projectProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
