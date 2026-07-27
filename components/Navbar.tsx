@@ -29,6 +29,13 @@ export default async function Navbar() {
                   پروژه‌های من
                 </Link>
 
+                <Link
+                  href="/dashboard/profile"
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  پروفایل من
+                </Link>
+
                 <div className="h-6 w-px bg-gray-300"></div>
 
                 <form action={logoutUser}>
