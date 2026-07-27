@@ -68,9 +68,9 @@ model Task {
   deadline    DateTime?
   project_id  String       @db.Uuid
   assignee_id String?      @db.Uuid
-
-  project  Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  assignee User?   @relation("AssignedTasks", fields: [assignee_id], references: [id], onDelete: SetNull)
+  due_date    DateTime?
+  project     Project      @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  assignee    User?        @relation("AssignedTasks", fields: [assignee_id], references: [id], onDelete: SetNull)
 
   comments     Comment[]
   activityLogs ActivityLog[]

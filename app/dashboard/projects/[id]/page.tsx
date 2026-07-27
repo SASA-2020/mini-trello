@@ -43,6 +43,7 @@ export default async function ProjectBoardPage({
     priority: task.priority,
     assignee_id: task.assignee_id,
     assignee: task.assignee,
+    due_date: task.due_date,
   }));
 
   const projectMembers = project.members.map((m) => ({

@@ -10,17 +10,22 @@ export async function createTask(formData: FormData) {
   const description = formData.get("description") as string;
   const priority = formData.get("priority") as "Low" | "Medium" | "High";
   const projectId = formData.get("projectId") as string;
+  const dueDateStr = formData.get("dueDate") as string;
 
   if (!title || !priority || !projectId) {
     return { error: "فیلدهای عنوان و اولویت الزامی هستند" };
   }
-
+  let dueDate = null;
+  if (dueDateStr) {
+    dueDate = new Date(dueDateStr);
+  }
   await db.task.create({
     data: {
       title,
       description,
       priority,
       project_id: projectId,
+      due_date: dueDate,
     },
   });
 
@@ -107,11 +112,15 @@ export async function updateTaskDetails(formData: FormData) {
   const description = formData.get("description") as string;
   const priority = formData.get("priority") as "Low" | "Medium" | "High";
   const assigneeId = formData.get("assigneeId") as string;
+  const dueDateStr = formData.get("dueDate") as string;
 
   if (!taskId || !projectId || !title) {
     throw new Error("عنوان تسک الزامی است");
   }
-
+  let dueDate = null;
+  if (dueDateStr) {
+    dueDate = new Date(dueDateStr);
+  }
   await db.task.update({
     where: { id: taskId },
     data: {
@@ -119,6 +128,7 @@ export async function updateTaskDetails(formData: FormData) {
       description,
       priority,
       assignee_id: assigneeId === "unassigned" ? null : assigneeId,
+      due_date: dueDate,
     },
   });
 

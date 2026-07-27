@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { deleteTask, updateTaskDetails, getTaskLogs } from "@/actions/task";
 import Swal from "sweetalert2";
+import DatePicker, { DateObject } from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 type ActivityLog = {
   id: string;
@@ -23,6 +26,7 @@ export default function TaskMenu({
   taskPriority,
   assigneeId,
   members,
+  taskDueDate,
 }: {
   projectId: string;
   taskId: string;
@@ -31,6 +35,7 @@ export default function TaskMenu({
   taskPriority: string;
   assigneeId: string | null;
   members: Member[];
+  taskDueDate: Date | string | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -38,7 +43,9 @@ export default function TaskMenu({
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
-
+  const [selectedDate, setSelectedDate] = useState<DateObject | null>(
+    taskDueDate ? new DateObject(new Date(taskDueDate)) : null,
+  );
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,7 +108,6 @@ export default function TaskMenu({
     if (status === "Done") return "تکمیل شده";
     return status;
   };
-
   return (
     <>
       <div className="relative" ref={menuRef}>
@@ -234,6 +240,29 @@ export default function TaskMenu({
                       </option>
                     ))}
                   </select>
+                </div>
+                <input
+                  type="hidden"
+                  name="dueDate"
+                  value={
+                    selectedDate ? selectedDate.toDate().toISOString() : ""
+                  }
+                />
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    تاریخ سررسید
+                  </label>
+                  <DatePicker
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    calendar={persian}
+                    locale={persian_fa}
+                    calendarPosition="bottom-right"
+                    placeholder="انتخاب تاریخ"
+                    inputClass="w-full px-4 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white"
+                    containerStyle={{ width: "100%" }}
+                  />
                 </div>
               </div>
 

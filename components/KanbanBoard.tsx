@@ -12,6 +12,7 @@ type Task = {
   priority: string;
   assignee_id: string | null;
   assignee: { name: string } | null;
+  due_date: Date | string | null;
 };
 
 type Member = { id: string; name: string };
@@ -108,6 +109,7 @@ export default function KanbanBoard({
                     taskPriority={task.priority}
                     assigneeId={task.assignee_id}
                     members={members}
+                    taskDueDate={task.due_date}
                   />
                 </div>
               </div>
@@ -118,6 +120,14 @@ export default function KanbanBoard({
                 >
                   {task.description}
                 </p>
+              )}
+              {task.due_date && (
+                <div className="mt-3 flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-md w-fit border border-gray-100">
+                  <span>📅</span>
+                  <span>
+                    {new Date(task.due_date).toLocaleDateString("fa-IR")}
+                  </span>
+                </div>
               )}
 
               <div className="mt-4 flex justify-between items-center">
